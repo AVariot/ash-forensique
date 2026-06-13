@@ -11,10 +11,15 @@
 // -- /dev/sdb
 
 int main(int argc, char **argv) {
-    if (argc != 3)
-        return -1;
-
-    read_metal(argv[1], argv[2]);
+    
+    // TODO: command handler
+    // if (argc != 2)
+    //     return -1;
+    // -s = stripped
+    // -n = not stripped
+    // read_metal(argv[1], argv[2]);
+    (void)argc;
+    reverse(argv[1]);
 
     return 0;
 }

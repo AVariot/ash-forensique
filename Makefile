@@ -19,6 +19,7 @@ lib: $(LNAME)
 $(LNAME): $(OBJS)
 	$(CC) -shared $(OBJS) -o $(LNAME)
 
+# add -s to strip the exe / elf
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
