@@ -1,80 +1,80 @@
 # ash-forensique
 
-Outil forensique en C pour la recuperation de fichiers supprimes depuis un peripherique de stockage brut. Le programme scanne les secteurs d'un disque a la recherche de signatures binaires (magic bytes) et reconstruit les fichiers effaces.
+Forensic file recovery tool written in C for recovering deleted files from raw storage devices. The program scans disk sectors for binary signatures (magic bytes) and reconstructs erased files.
 
-## Formats supportes
+## Supported Formats
 
-| Format | Detection | Fin de fichier |
-|--------|-----------|----------------|
+| Format | Detection | End of File |
+|--------|-----------|-------------|
 | JPEG   | `FF D8 FF` | `FF D9` |
 | PNG    | `89 50 4E 47` | `IEND` chunk |
 | PDF    | `%PDF` | `%%EOF` |
-| WEBP   | `RIFF...WEBP` | Taille lue dans le header |
+| WEBP   | `RIFF...WEBP` | Size read from header |
 
-## Fonctionnement
+## How It Works
 
-Le programme lit le peripherique secteur par secteur (512 octets) en une seule passe **O(N)** :
+The program reads the device sector by sector (512 bytes) in a single **O(N)** pass:
 
-1. Chaque secteur est analyse a la recherche de magic bytes
-2. Quand un header est detecte, un fichier de sortie est cree
-3. Les donnees sont ecrites jusqu'a la detection du footer (ou atteinte de la taille pour WEBP)
-4. Le fichier est ferme et le scan continue
+1. Each sector is scanned for magic bytes
+2. When a header is detected, an output file is created
+3. Data is written until the footer is found (or the expected size is reached for WEBP)
+4. The file is closed and scanning continues
 
-> **Note** : L'algorithme ne gere pas la fragmentation. Seuls les fichiers stockes de maniere contigue sur le disque peuvent etre recuperes.
+> **Note**: The algorithm does not handle fragmentation. Only files stored contiguously on disk can be recovered.
 
-## Compilation
+## Building
 
 ```bash
-# Construire l'executable
+# Build the executable
 make
 
-# Construire en bibliotheque partagee
+# Build as a shared library
 make lib
 
-# Nettoyer
-make clean    # supprime les .o
-make fclean   # supprime tout (objets + binaire + lib)
-make re       # reconstruction complete
+# Clean
+make clean    # remove .o files
+make fclean   # remove everything (objects + binary + lib)
+make re       # full rebuild
 ```
 
-## Utilisation
+## Usage
 
 ```bash
-./getLostData <peripherique> <dossier_sortie>
+./getLostData <device> <output_directory>
 ```
 
 ```bash
-# Exemple : recuperer les fichiers d'une cle USB
+# Example: recover files from a USB drive
 sudo ./getLostData /dev/sdb ./recovered
 ```
 
-Les fichiers recuperes sont nommes `fichier_0.jpeg`, `fichier_1.png`, etc.
+Recovered files are named `fichier_0.jpeg`, `fichier_1.png`, etc.
 
-## Structure du projet
+## Project Structure
 
 ```
 .
-├── main.c                   # Point d'entree
+├── main.c                   # Entry point
 ├── main.h
 ├── Makefile
 ├── include/
 │   ├── elements/
-│   │   └── element.h        # Signatures binaires des formats
+│   │   └── element.h        # Binary signatures for supported formats
 │   └── sys/
 │       └── linux/
-│           └── file.h       # Interface I/O Linux
+│           └── file.h       # Linux I/O interface
 └── src/
     ├── elements/
-    │   └── element.c        # Detection de type et fin de fichier
+    │   └── element.c        # File type and footer detection
     └── sys/
         └── linux/
-            └── file.c       # Algorithme de carving (read_metal)
+            └── file.c       # Carving algorithm (read_metal)
 ```
 
-## Details techniques
+## Technical Details
 
-- **Lecture par secteurs** : blocs de 512 octets (taille standard d'un secteur disque)
-- **Validation JPEG** : taille minimum de 50 Ko pour filtrer les faux positifs
-- **WEBP** : la taille est extraite du header RIFF au lieu d'un footer
-- **Zero dependance externe** : uniquement la libc standard
-- **Compilation stricte** : `-Wall -Wextra -Werror`
+- **Sector-based reading**: 512-byte blocks (standard disk sector size)
+- **JPEG validation**: minimum 50 KB size to filter out false positives
+- **WEBP**: size is extracted from the RIFF header instead of using a footer
+- **Zero external dependencies**: only the standard libc
+- **Strict compilation**: `-Wall -Wextra -Werror`

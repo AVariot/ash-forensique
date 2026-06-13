@@ -17,7 +17,7 @@ int read_metal(const char *path, const char *folder_dest) {
     unsigned char buffer[SECTOR_SIZE];
     enum CURRENT_TYPE_E current_type = NONE;
     unsigned int webp_size_rem = 0;
-    unsigned long current_file_size = 0; // Compteur pour la sécurité
+    unsigned long current_file_size = 0;
     FILE *fp_out = NULL;
     int file_index = 0;
     
@@ -29,7 +29,7 @@ int read_metal(const char *path, const char *folder_dest) {
                 if (filename) {
                     fp_out = fopen(filename, "wb");
                     free(filename);
-                    current_file_size = 0; // Reset du compteur
+                    current_file_size = 0;
                     if (current_type == WEBP) webp_size_rem = get_webp_size(buffer);
                 }
             }
@@ -44,19 +44,16 @@ int read_metal(const char *path, const char *folder_dest) {
             } else {
                 int end_off = end_file(buffer, current_type);
                 
-                // Si on a un footer mais que le fichier est minuscule, on l'ignore (c'est un faux positif)
                 if (end_off != -1 && (current_type == JPEG && current_file_size + end_off < MIN_JPEG_SIZE)) {
                     fwrite(buffer, 1, SECTOR_SIZE, fp_out);
                     current_file_size += SECTOR_SIZE;
                 } 
-                // Sinon, c'est une fin normale
                 else if (end_off != -1) {
                     fwrite(buffer, 1, end_off, fp_out);
                     fclose(fp_out);
                     fp_out = NULL;
                     current_type = NONE;
                 } 
-                // Pas de footer, on continue
                 else {
                     fwrite(buffer, 1, SECTOR_SIZE, fp_out);
                     current_file_size += SECTOR_SIZE;

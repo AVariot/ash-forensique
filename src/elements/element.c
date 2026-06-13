@@ -15,7 +15,7 @@ const unsigned char WEBP_MAGIC_SECOND[] = {0x57, 0x45, 0x42, 0x50};
 
 unsigned int get_webp_size(unsigned char *buffer) {
     unsigned int chunk_size = buffer[4] | (buffer[5] << 8) | (buffer[6] << 16) | (buffer[7] << 24);
-    return chunk_size + 8; // On ajoute les 8 octets du header RIFF
+    return chunk_size + 8; // RIFF header = 8 octets
 }
 
 int end_file(unsigned char *buffer, enum CURRENT_TYPE_E current_type) {
