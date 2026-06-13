@@ -2,7 +2,7 @@ NAME	= getLostData
 LNAME	= liblostdata.so
 
 CC	= cc
-CFLAGS	= -Wall -Wextra -Werror -fPIC
+CFLAGS	= -Wall -Wextra -Werror -fPIC -g
 
 SRCS	= $(shell find . -name '*.c')
 OBJS	= $(SRCS:.c=.o)
@@ -12,12 +12,12 @@ INCS	= $(addprefix -I, $(sort $(dir $(shell find . -name '*.h'))))
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME) -lcapstone
 
 lib: $(LNAME)
 
 $(LNAME): $(OBJS)
-	$(CC) -shared $(OBJS) -o $(LNAME)
+	$(CC) -shared $(OBJS) -o $(LNAME) -lcapstone
 
 # add -s to strip the exe / elf
 %.o: %.c
