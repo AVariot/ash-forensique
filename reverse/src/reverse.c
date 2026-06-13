@@ -8,7 +8,7 @@
         https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2a-manual.pdf
 */
 
-void disassemble(unsigned char *code, size_t size, uint64_t address) {
+static void disassemble(unsigned char *code, size_t size, uint64_t address) {
     csh handle;
     cs_insn *insn;
     size_t count;
@@ -105,7 +105,7 @@ int reverse(const char *executable) {
                 if (code_buffer != NULL) {
                     pread(fileno(fp), code_buffer, section_header.sh_size, section_header.sh_offset);
                     // TODO: I commented bcause too long
-                    // disassemble(code_buffer, section_header.sh_size, section_header.sh_addr);
+                    disassemble(code_buffer, section_header.sh_size, section_header.sh_addr);
                     free(code_buffer);
                 }
             }
