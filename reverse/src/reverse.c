@@ -16,7 +16,7 @@ int reverse(const char *executable) {
         printf("ELF\n");
     } else {
         printf("NOT ELF\n");
-        fclose(fd);
+        fclose(fp);
         return -1;
     }
     // bit 5 - architecture in binary
@@ -40,7 +40,72 @@ int reverse(const char *executable) {
     }
     printf("OS/ABI: %s\n", osabi);
 
-    fclose(fd);
+    // Offset (where start the header section table)
+    Elf64_Off offset = header.e_shoff;
+    printf("Offset: %ld\n", offset);
 
+    // Number of section in the exe
+    uint16_t section_max_number = header.e_shnum;
+    printf("Max number section: %d\n", section_max_number);
+    
+    // Section Header String Table
+    uint16_t shstrndx_index = header.e_shstrndx;
+    printf("shstrndx index: %d\n", shstrndx_index);
+
+    Elf64_Shdr section_header;
+
+    fseek(fp, header.e_shoff + (header.e_shstrndx * sizeof(Elf64_Shdr)), SEEK_SET);
+    fread(&section_header, sizeof(Elf64_Shdr), 1, fp);
+    char *shstrtab = malloc(section_header.sh_size);
+    fseek(fp, section_header.sh_offset, SEEK_SET);
+    fread(shstrtab, section_header.sh_size, 1, fp);
+
+
+    // Positioning to the start of the file
+    fseek(fp, header.e_shoff, SEEK_SET);
+    for (int i = 0; i < header.e_shnum; i++) {
+        fread(&section_header, sizeof(Elf64_Shdr), 1, fp);
+
+        char *nom = shstrtab + section_header.sh_name;
+    
+        printf("Section [%d] : %s\n", i, nom);
+
+        // Check the section nature
+        // SHT_PROGBITS is the program generated section
+        if (section_header.sh_type == SHT_PROGBITS) {
+            printf("SHT_PROGBITS found\n");
+        // This section take no place but reserved place in RAM during the execution
+        // like .bss that contains all global variable
+        } else if (section_header.sh_type == SHT_NOBITS) {
+            printf("SHT_NOBITS found\n");
+        // Symbol table
+        } else if (section_header.sh_type == SHT_SYMTAB) {
+            printf("SHT_SYMTAB found\n");
+        // String table
+        } else if (section_header.sh_type == SHT_STRTAB) {
+            printf("SHT_STRTAB found\n");
+        }
+
+        // This section will have place allocated in the RAM
+        // Here not else if because flags or bits mask using & operation
+        if (section_header.sh_flags == SHF_ALLOC) {
+            printf("SHF_ALLOC found\n");
+        /*
+            If the bit = 1 the os knows tthat he can execute the code section
+            like a machine code.
+            In securitised os only .text have this bit
+        */
+        }
+        if (section_header.sh_flags == SHF_EXECINSTR) {
+            printf("SHF_EXECINSTR found\n");
+        // Bloc that can be modified during the excution
+        // Mostly in .data and not in .text
+        }
+        if (section_header.sh_flags == SHF_WRITE) {
+            printf("SHF_WRITE found\n");
+        }
+    }
+
+    fclose(fp);
     return 0;
 }
